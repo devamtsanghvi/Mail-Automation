@@ -113,7 +113,7 @@ def check_update():
             # exit app
             sys.exit(0)
 
-
+check_update()
 
 
 

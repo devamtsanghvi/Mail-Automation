@@ -33,7 +33,7 @@ def check_update():
     # Send the GET request to retrieve the file content
     response = requests.get(url.format(owner=owner, repo=repo, path=path), params=params)
     content = json.loads(response.content)
-
+    print(content)
     # Decode the base64-encoded content of the file
     file_content = base64.b64decode(content['content']).decode('utf-8')
     print(file_content)

@@ -26,8 +26,8 @@ def check_update():
     # GETTING LATEST VERSION FROM GITHUB
     url = 'https://api.github.com/repos/{owner}/{repo}/contents/{path}'
     owner = 'devamtsanghvi'
-    repo = 'Mail-Automation'
-    path = 'version.txt'
+    repo = 'auto_update'
+    path = 'version_mail_automation.txt'
     params = {'ref': 'main'}
 
     # Send the GET request to retrieve the file content
@@ -96,7 +96,7 @@ def check_update():
             # Extract the exe file from the release assets
             with zipfile.ZipFile(zipfile_bytes) as z:
                 for filename in z.namelist():
-                    if filename.endswith('.exe'):
+                    if filename.endswith('mail_automation.exe'):
                         with open("update.exe", 'wb') as f:
                             f.write(z.read(filename))
                         break

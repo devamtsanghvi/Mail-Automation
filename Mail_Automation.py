@@ -1,5 +1,6 @@
 from tkinter import *
 import tkinter as tk
+from tkinter import ttk
 import tkinter.font as tkFont
 import imaplib
 import email
@@ -56,7 +57,7 @@ def check_update():
             new_dialog.title("Update Downloading")
 
             # Add a progress bar to the new dialog box
-            progress_bar = tk.ttk.Progressbar(new_dialog, orient="horizontal", length=200, mode="determinate")
+            progress_bar = ttk.Progressbar(new_dialog, orient="horizontal", length=200, mode="determinate")
             progress_bar.pack(pady=20)
 
             # Add a label to show the progress percentage
@@ -230,7 +231,7 @@ def submit():
 
 root = tk.Tk()
 
-root.title("Mail Automation")
+root.title("Mail Automation v1.2")
 root.geometry("600x350")
 root['background'] = '#5E2572'
 width=650
@@ -287,4 +288,4 @@ btn_submit.place(x=365,y=80,width=110,height=35)
 
 root.bind("<Return>", lambda event=None: btn_submit.invoke())
 root.mainloop()
-
+root.mainloop()

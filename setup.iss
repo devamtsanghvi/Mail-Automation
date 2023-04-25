@@ -5,25 +5,25 @@
 #define MyAppVersion "v1.1"
 #define MyAppPublisher "AGC"
 #define MyAppExeName "Mail_Automation.exe"
-#define MyAppAssocName MyAppName + " Setup"
+#define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".exe"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{00A35162-0EA8-4292-956A-AE741BF6F621}
+AppId={{89EDAE62-320F-4E3A-A875-E005C390C07A}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName=C:\{#MyAppName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=C:\Users\Stark solutions\Desktop
-OutputBaseFilename=update
+OutputDir=D:\Mail Automation
+OutputBaseFilename=mysetup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -35,8 +35,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\Mail Automation\dist\Mail_Automation\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Mail Automation\dist\Mail_Automation\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\Mail Automation\dist\v1.2\Mail_Automation\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Mail Automation\dist\v1.2\Mail_Automation\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

@@ -7,6 +7,7 @@ import imaplib
 import email
 from tkinter import messagebox
 from bs4 import BeautifulSoup
+import re
 import mysql.connector
 import pandas as pd
 import ver
@@ -288,6 +289,20 @@ def submit():
                         body = soup.get_text(separator='\n')  # remove HTML tags
 
                     email_textbox.insert(tk.END, f"\n{'#'*75}\nFrom: {sender}\nSubject: {subject}\n{'-'*50}\nBody: {body}\n")
+
+
+                    # index = body.find("OTP")
+                    # print(body[index+1])
+
+
+                    # if sender == 'KVB-no.reply@kvbmail.com' and subject == 'On-Demand Tokencode':
+                    #     match = re.search(r'\b\d{8}\b', body)
+                    #     if match:
+                    #         otp = match.group(0)
+                    #         print("OTP found:", otp)
+                    #     else:
+                    #         print("OTP not found")
+                    
 
         # mail.close()
         mail.logout()

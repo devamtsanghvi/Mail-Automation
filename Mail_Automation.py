@@ -184,7 +184,7 @@ def submit():
         scrollbar.config(command=email_textbox.yview)
 
         tempStr = email_address.lower().split('@')[1]
-        # print(tempStr)
+        print(tempStr)
         if tempStr == "gmail.com":
             host = 'imap.gmail.com'
             mail = imaplib.IMAP4_SSL(host)
@@ -199,7 +199,7 @@ def submit():
                 res, messages = mail.select('[Gmail]/Spam')
 
 
-        elif tempStr == "yahoo.com" or "yahoo.co.in" or "yahoo.in":
+        elif tempStr == ("yahoo.com" or "yahoo.co.in" or "yahoo.in"):
             host = 'imap.mail.yahoo.com'
             mail = imaplib.IMAP4_SSL(host)
             try:

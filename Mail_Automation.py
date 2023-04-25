@@ -116,7 +116,7 @@ def check_update():
             # exit app
             sys.exit(0)
 
-# check_update()
+check_update()
 
 
 
@@ -182,7 +182,7 @@ def submit():
         email_textbox.pack(expand=True, fill=tk.BOTH)
         scrollbar.config(command=email_textbox.yview)
 
-        tempStr = tb_email.get().lower().split('@')[1]
+        tempStr = email_address.lower().split('@')[1]
         # print(tempStr)
         if tempStr == "gmail.com":
             host = 'imap.gmail.com'
@@ -198,7 +198,7 @@ def submit():
                 res, messages = mail.select('[Gmail]/Spam')
 
 
-        elif tempStr == "yahoo.com":
+        elif tempStr == "yahoo.com" or "yahoo.co.in" or "yahoo.in":
             host = 'imap.mail.yahoo.com'
             mail = imaplib.IMAP4_SSL(host)
             try:

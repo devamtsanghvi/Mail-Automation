@@ -1,3 +1,4 @@
+import html
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk
@@ -5,6 +6,7 @@ import tkinter.font as tkFont
 import imaplib
 import email
 from tkinter import messagebox
+from bs4 import BeautifulSoup
 import mysql.connector
 import pandas as pd
 import ver
@@ -114,7 +116,7 @@ def check_update():
             # exit app
             sys.exit(0)
 
-check_update()
+# check_update()
 
 
 
@@ -210,18 +212,32 @@ def submit():
                     subject = msg["Subject"]
 
                     body = ""
-                    temp = msg
-                    if temp.is_multipart():
-                        for part in temp.walk():
+                    if msg.is_multipart():
+                        for part in msg.walk():
                             ctype = part.get_content_type()
                             cdispo = str(part.get('Content-Disposition'))
 
-                            # skip to text/plain type
                             if ctype == 'text/plain' and 'attachment' not in cdispo:
-                                body = part.get_payload()
+                                body = part.get_payload(decode=True)
+                                charset = part.get_content_charset()
+                                if charset:
+                                    body = body.decode(charset)
+                                break
+                            elif ctype == 'text/html' and 'attachment' not in cdispo:
+                                body = part.get_payload(decode=True)
+                                charset = part.get_content_charset()
+                                if charset:
+                                    body = body.decode(charset)
+                                soup = BeautifulSoup(body, 'html.parser')
+                                body = soup.get_text(separator='\n')  # remove HTML tags
                                 break
                     else:
-                        body = temp.get_payload()
+                        body = msg.get_payload(decode=True)
+                        charset = msg.get_content_charset()
+                        if charset:
+                            body = body.decode(charset)
+                        soup = BeautifulSoup(body, 'html.parser')
+                        body = soup.get_text(separator='\n')  # remove HTML tags
 
                     email_textbox.insert(tk.END, f"\n{'#'*75}\nFrom: {sender}\nSubject: {subject}\n{'-'*50}\nBody: {body}\n")
 
@@ -287,5 +303,5 @@ btn_submit["justify"] = "center"
 btn_submit.place(x=365,y=80,width=110,height=35)
 
 root.bind("<Return>", lambda event=None: btn_submit.invoke())
-root.mainloop()
+root.attributes("-topmost",True)
 root.mainloop()

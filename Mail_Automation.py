@@ -19,7 +19,7 @@ import sys
 import subprocess
 import io
 
-global mail, password, lb_email
+global mail, password, lb_email, var
 
 
 #AUTO UPDATE THE APPLICATION USING THE RELEASE FEATURE IN GITHUB
@@ -139,7 +139,8 @@ def connection():
 def submit():
     conn = connection()
     cur = conn.cursor()
-    query = f"SELECT memail, apppassword FROM backoffice.clientemail where memail='{str(tb_email.get())}';"
+    temp = tb_email.get().replace("\n","")
+    query = f"SELECT memail, apppassword FROM backoffice.clientemail where memail='{str(temp)}';"
     print(query)
     a = cur.execute(query)
     b = cur.fetchall()
@@ -149,7 +150,7 @@ def submit():
 
     lb_email = df.iloc[0, 0]
     password = df.iloc[0, 1]
-    # s
+    print(password)
     # getBrow = conbrowser(Customerid, Password, bankid)
 
     if tb_email.get() == '' :
@@ -157,6 +158,7 @@ def submit():
             
     else:
         email_address = tb_email.get().lower()
+        email_address = email_address.replace("\n","")
         email_count = int(tb_count.get())
 
         # email_window = tk.Toplevel(root)
@@ -184,22 +186,68 @@ def submit():
         # print(tempStr)
         if tempStr == "gmail.com":
             host = 'imap.gmail.com'
+            mail = imaplib.IMAP4_SSL(host)
+            try:
+                mail.login(email_address, password)
+            except imaplib.IMAP4.error as e:
+                messagebox.showinfo("",e)
+            if var.get() == 1:
+                res, messages = mail.select('Inbox')
+            
+            elif var.get() == 2:
+                res, messages = mail.select('[Gmail]/Spam')
+
+
         elif tempStr == "yahoo.com":
             host = 'imap.mail.yahoo.com'
+            mail = imaplib.IMAP4_SSL(host)
+            try:
+                mail.login(email_address, password)
+            except imaplib.IMAP4.error as e:
+                messagebox.showinfo("",e)
+            if var.get() == 1:
+                res, messages = mail.select('Inbox')
+            
+            elif var.get() == 2:
+                res, messages = mail.select('Bulk')
+
+
         elif tempStr == "outlook.com":
             host = 'outlook.office365.com'
+            mail = imaplib.IMAP4_SSL(host)
+            try:
+                mail.login(email_address, password)
+            except imaplib.IMAP4.error as e:
+                messagebox.showinfo("",e)
+            if var.get() == 1:
+                res, messages = mail.select('Inbox')
+            elif var.get() == 2:
+                res, messages = mail.select('Junk')
+
+
         elif tempStr == "rediffmail.com":
             host = 'mail.rediffmailpro.com'
+            mail = imaplib.IMAP4_SSL(host)
+            try:
+                mail.login(email_address, password)
+            except imaplib.IMAP4.error as e:
+                messagebox.showinfo("",e)
+
+            if var.get() == 1:
+                res, messages = mail.select('Inbox')
+            elif var.get() == 2:
+                res, messages = mail.select('Spam')
+
         else:
             messagebox.showerror("Error", "Unsupported email domain")
             return
 
-        mail = imaplib.IMAP4_SSL(host)
+        # mail = imaplib.IMAP4_SSL(host)
         # time.sleep(2)
-        mail.login(email_address, password)
-        
-        res, messages = mail.select('INBOX')
+        # mail.login(email_address, password)
+
         total_messages = int(messages[0])
+        
 
         for i in range(total_messages, total_messages - email_count, -1):
             # RFC822 protocol
@@ -247,7 +295,7 @@ def submit():
 
 root = tk.Tk()
 
-root.title("Mail Automation v1.2")
+root.title("Mail Automation v1.4")
 root.geometry("600x350")
 root['background'] = '#5E2572'
 width=650
@@ -275,6 +323,30 @@ lb_count["fg"] = "#fff"
 lb_count["justify"] = "center"
 lb_count.place(x=60,y=80,width=139,height=30)
 
+var = tk.IntVar()
+var.set(1)
+inbox_mail = tk.Radiobutton(root, text="INBOX", variable=var, value=1)
+ft = tkFont.Font(family='Times',size=13, weight='bold')
+inbox_mail["font"] = ft
+inbox_mail["selectcolor"] = "#5E2572"
+inbox_mail["activebackground"] = "#5E2572"
+inbox_mail["activeforeground"] = "#FC7242"
+inbox_mail["bg"] = "#5E2572"
+inbox_mail["fg"] = "#fff"
+inbox_mail["justify"] = "center"
+inbox_mail.place(x=520,y=20,width=95,height=25)
+
+spam_mail = tk.Radiobutton(root, text="SPAM", variable=var, value=2)
+ft = tkFont.Font(family='Times',size=13, weight='bold')
+spam_mail["bg"] = "#5E2572"
+spam_mail["activebackground"] = "#5E2572"
+spam_mail["activeforeground"] = "#FC7242"
+spam_mail["selectcolor"] = "#5E2572"
+spam_mail["font"] = ft
+spam_mail["fg"] = "#fff"
+spam_mail["justify"] = "center"
+spam_mail.place(x=520,y=50,width=85,height=25)
+
 tb_email = tk.Entry(root)
 tb_email["borderwidth"] = "1px"
 ft = tkFont.Font(family='Times',size=11)
@@ -282,6 +354,7 @@ tb_email["font"] = ft
 tb_email["fg"] = "#333333"
 tb_email["justify"] = "center"
 tb_email.place(x=200,y=20,width=275,height=30)
+tb_email.focus_set()
 
 tb_count = tk.Entry(root)
 tb_count["borderwidth"] = "1px"

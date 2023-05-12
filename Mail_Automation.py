@@ -19,6 +19,7 @@ import zipfile
 import sys
 import subprocess
 import io
+import shutil
 
 global mail, password, lb_email, var
 
@@ -74,50 +75,69 @@ def check_update():
             # chunk_size = 2048 # 2 kB
             chunk_size = 4194304 # 4 MB
             downloaded_size = 0
-            if(os.path.exists("update.zip")):
-                os.remove("update.zip")
-            with open("update.zip", "wb") as f:
+
+            # Get the path to the Documents folder on Windows
+            documents_folder = os.path.join(os.path.expanduser("~"), "Documents")
+
+            # Create a subfolder in the Documents folder to store the new version
+            download_folder = os.path.join(documents_folder, "AGC TEMP")
+
+
+            if(os.path.exists(download_folder + "\\update_mail.zip")):
+                os.remove(download_folder + "\\update_mail.zip")
+            with open(download_folder + "\\update_mail.zip", "wb") as f:
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     if chunk:
                         zipfile_bytes.write(chunk)
-                        print("Downloaded size: ", downloaded_size)
-                        print("CHUNK SIZE: ", len(chunk))
-                        print("TOTAL SIZE: ", total_size)
                         downloaded_size += len(chunk)
                         progress_pct = int(downloaded_size / total_size * 100)
                         progress_bar['value'] = progress_pct
                         progress_label.config(text=f"Downloading update ({progress_pct}%)")
-                        print(f"Downloading update ({progress_pct}%")
                         new_dialog.update()
 
             #Remove ZIP file
-            os.remove("update.zip")
+            os.remove(download_folder + "\\update_mail.zip")
             new_dialog.destroy()
 
-            if(os.path.exists("update.exe")):
-                os.remove("update.exe")
+            if(os.path.exists(download_folder + "\\update_mail.exe")):
+                os.remove(download_folder +"\\update_mail.exe")
 
             # Extract the exe file from the release assets
             with zipfile.ZipFile(zipfile_bytes) as z:
                 for filename in z.namelist():
                     if filename.endswith('mail_automation.exe'):
-                        with open("update.exe", 'wb') as f:
+                        with open(download_folder + "\\update_mail.exe", 'wb') as f:
                             f.write(z.read(filename))
                         break
 
-            with open('run_update.bat', 'w') as f:
-                f.write('start update.exe')
+            with open(download_folder + '\\run_update_mail.bat', 'w') as f:
+                f.write('start update_mail.exe')
 
-            # run batch file
-            subprocess.call('run_update.bat', shell=True)
+            
 
-            os.remove("run_update.bat")
             # os.remove("update.exe")
 
+            os.chdir(download_folder)
+            # run batch file
+            subprocess.call('run_update_mail.bat', shell=True)
+
+            response = messagebox.askyesno('NOTE', 'Do you want to uninstall previous versions(Recommended)?')
+            if response == tk.YES:
+                folder_path1 = "D:/Mail Automation"
+
+                if os.path.exists(folder_path1):
+                    shutil.rmtree(folder_path1)
+
+                folder_path = "C:/Mail Automation"
+
+                if os.path.exists(folder_path):
+                    shutil.rmtree(folder_path)
+            
+            os.remove("run_update_mail.bat")
             # exit app
             sys.exit(0)
 
-check_update()
+# check_update()
 
 
 
@@ -198,8 +218,7 @@ def submit():
             elif var.get() == 2:
                 res, messages = mail.select('[Gmail]/Spam')
 
-
-        elif tempStr == ("yahoo.com" or "yahoo.co.in" or "yahoo.in"):
+        elif tempStr == "yahoo.com" or tempStr=="yahoo.co.in" or tempStr=="yahoo.in":
             host = 'imap.mail.yahoo.com'
             mail = imaplib.IMAP4_SSL(host)
             try:
@@ -310,7 +329,7 @@ def submit():
 
 root = tk.Tk()
 
-root.title("Mail Automation v1.4")
+root.title(f"Mail Automation {ver.version}")
 root.geometry("600x350")
 root['background'] = '#5E2572'
 width=650

@@ -56,7 +56,7 @@ def check_update():
             response = requests.get(url1.format(owner=owner, repo=repo))
             release_info = json.loads(response.content)
 
-            new_dialog = tk.Toplevel()
+            # new_dialog = tk.Toplevel()
             new_dialog.geometry("300x100")
             new_dialog.title("Update Downloading")
 
@@ -410,5 +410,5 @@ btn_submit["justify"] = "center"
 btn_submit.place(x=365,y=80,width=110,height=35)
 
 root.bind("<Return>", lambda event=None: btn_submit.invoke())
-root.attributes("-topmost",True)
+# root.attributes("-topmost",True)
 root.mainloop()

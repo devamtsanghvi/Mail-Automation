@@ -346,20 +346,19 @@ def login(value,password):
     mail.logout()
 
 def submit():
-    # conn = connection()
-    # cur = conn.cursor()
-    # temp = tb_email.get().replace("\n","")
-    # query = f"SELECT memail, apppassword FROM backoffice.clientemail where memail='{str(temp)}';"
-    # print(query)
-    # a = cur.execute(query)
-    # b = cur.fetchall()
-    # print(b)
+    conn = connection()
+    cur = conn.cursor()
+    temp = tb_email.get().replace("\n","")
+    query = f"SELECT memail, apppassword FROM backoffice.clientemail where memail='{str(temp)}';"
+    print(query)
+    a = cur.execute(query)
+    b = cur.fetchall()
+    print(b)
 
-    # df = pd.read_sql(query, con=conn)
+    df = pd.read_sql(query, con=conn)
 
-    # lb_email = df.iloc[0, 0]
-    # password = df.iloc[0, 1]
-    password = "djnezzcttklggxuz"
+    lb_email = df.iloc[0, 0]
+    password = df.iloc[0, 1]
     print(password)
     # getBrow = conbrowser(Customerid, Password, bankid)
 

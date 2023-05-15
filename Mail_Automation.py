@@ -210,7 +210,7 @@ def login(value,password):
     # scrollbar.config(command=email_textbox.yview)
 
     frame = tk.Frame(root)
-    frame.place(x=0, y=130,width=650, height=270)
+    frame.place(x=0, y=90,width=650, height=310)
 
     scrollbar = tk.Scrollbar(frame)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -346,19 +346,20 @@ def login(value,password):
     mail.logout()
 
 def submit():
-    conn = connection()
-    cur = conn.cursor()
-    temp = tb_email.get().replace("\n","")
-    query = f"SELECT memail, apppassword FROM backoffice.clientemail where memail='{str(temp)}';"
-    print(query)
-    a = cur.execute(query)
-    b = cur.fetchall()
-    print(b)
+    # conn = connection()
+    # cur = conn.cursor()
+    # temp = tb_email.get().replace("\n","")
+    # query = f"SELECT memail, apppassword FROM backoffice.clientemail where memail='{str(temp)}';"
+    # print(query)
+    # a = cur.execute(query)
+    # b = cur.fetchall()
+    # print(b)
 
-    df = pd.read_sql(query, con=conn)
+    # df = pd.read_sql(query, con=conn)
 
-    lb_email = df.iloc[0, 0]
-    password = df.iloc[0, 1]
+    # lb_email = df.iloc[0, 0]
+    # password = df.iloc[0, 1]
+    password = "cmfwtfxmgffqxdxd"
     print(password)
     # getBrow = conbrowser(Customerid, Password, bankid)
 
@@ -440,17 +441,60 @@ btn_submit = tk.Button(root, text="Submit", command=submit,
                        justify="center")
 
 # Place elements on the grid
-lb_email.grid(row=0,column=0,padx=(50,10),pady=(20,10))
-lb_count.grid(row=1,column=0,padx=(50,10),pady=(10))
-lb_sender.grid(row=2,column=0,padx=(50,10),pady=(10))
-lb_keyword.grid(row=3,column=0,padx=(50,10),pady=(10))
-tb_email.grid(row=0,column=1,padx=(10),pady=(20,10),sticky='ew')
-tb_count.grid(row=1,column=1,padx=(10),pady=(10),sticky='ew')
-tb_sender.grid(row=2,column=1,padx=(10),pady=(10),sticky='ew')
-tb_keyword.grid(row=3,column=1,padx=(10),pady=(10),sticky='ew')
-inbox_mail.grid(row=0,column=2,padx=(50),pady=(20))
-spam_mail.grid(row=1,column=2,padx=(50))
-btn_submit.grid(row=3,column=2,padx=(50),pady=(10))
+# lb_email.grid(row=0,column=0,padx=(50,10),pady=(20,10))
+# lb_count.grid(row=1,column=0,padx=(50,10),pady=(10))
+# lb_sender.grid(row=2,column=0,padx=(50,10),pady=(10))
+# lb_keyword.grid(row=3,column=0,padx=(50,10),pady=(10))
+# tb_email.grid(row=0,column=1,padx=(10),pady=(20,10),sticky='ew')
+# tb_count.grid(row=1,column=1,padx=(10),pady=(10),sticky='ew')
+# tb_sender.grid(row=2,column=1,padx=(10),pady=(10),sticky='ew')
+# tb_keyword.grid(row=3,column=1,padx=(10),pady=(10),sticky='ew')
+# inbox_mail.grid(row=0,column=2,padx=(50),pady=(20))
+# spam_mail.grid(row=1,column=2,padx=(50))
+# btn_submit.grid(row=3,column=2,padx=(50),pady=(10))
+
+
+
+# root.geometry("600x350")
+
+# Widget: lb_email
+lb_email.grid(row=1, column=1, padx=(10, 3), pady=(5, 3))
+
+# Widget: lb_count
+lb_count.grid(row=2, column=1, padx=(10, 3), pady=(3, 3))
+
+# Widget: tb_email
+tb_email.grid(row=1, column=2, padx=(3), pady=(5, 3), sticky='ew')
+
+# Widget: tb_count
+tb_count.grid(row=2, column=2, padx=(3), pady=(3, 3), sticky='ew')
+
+# Widget: lb_sender
+lb_sender.grid(row=1, column=3, padx=(10, 3), pady=(5, 3))
+
+# Widget: lb_keyword
+lb_keyword.grid(row=2, column=3, padx=(10, 3), pady=(3, 3))
+
+# Widget: tb_sender
+tb_sender.grid(row=1, column=4, padx=(3), pady=(5, 3), sticky='ew')
+
+# Widget: tb_keyword
+tb_keyword.grid(row=2, column=4, padx=(3), pady=(3, 3), sticky='ew')
+
+# Widget: inbox_mail
+inbox_mail.grid(row=1, column=5, padx=(10), pady=(5))
+
+# Widget: spam_mail
+spam_mail.grid(row=2, column=5, padx=(10))
+
+# Widget: btn_submit
+btn_submit.grid(row=2, column=6, padx=(10), pady=(3))
+
+
+
+
+
+
 
 root.bind("<Return>", lambda event=None: btn_submit.invoke())
 # root.attributes("-topmost",True)

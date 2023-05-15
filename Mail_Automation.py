@@ -56,7 +56,7 @@ def check_update():
             response = requests.get(url1.format(owner=owner, repo=repo))
             release_info = json.loads(response.content)
 
-            # new_dialog = tk.Toplevel()
+            new_dialog = tk.Toplevel()
             new_dialog.geometry("300x100")
             new_dialog.title("Update Downloading")
 
@@ -192,6 +192,8 @@ def func(msg,email_textbox,sender,subject):
 # password = ""
 
 def login(value,password):
+    cnt = 0
+
     email_address = tb_email.get().lower()
     email_address = email_address.replace("\n","")
     email_count = int(tb_count.get())
@@ -282,35 +284,49 @@ def login(value,password):
 
     total_messages = int(messages[0])
     
+    print(total_messages)
+    try:
+        for i in range(total_messages, 1, -1):
+            # RFC822 protocol
+            res, msg = mail.fetch(str(i), "(RFC822)")
+            for response in msg:
+                if isinstance(response, tuple):
+                    msg = email.message_from_bytes(response[1])
 
-    for i in range(total_messages, total_messages - email_count, -1):
-        # RFC822 protocol
-        res, msg = mail.fetch(str(i), "(RFC822)")
-        for response in msg:
-            if isinstance(response, tuple):
-                msg = email.message_from_bytes(response[1])
+                    sender = msg["From"]
+                    subject = str(msg["Subject"])
 
-                sender = msg["From"]
-                subject = msg["Subject"]
-                sender_test = re.findall(r'[\w\.-]+@[\w\.-]+', sender)[0]
+                    print("TYPE: ", type(subject))
+                    sender_test = re.findall(r'[\w\.-]+@[\w\.-]+', sender)[0]
 
-                if value == 0:
-                    print("All")
-                    func(msg,email_textbox,sender,subject)
-                elif value == 1:
-                    if sender_test == tb_sender.get():
-                        print("Sender matched")
+                    if value == 0:
+                        print("All")
                         func(msg,email_textbox,sender,subject)
+                        cnt += 1
+                    elif value == 1:
+                        if sender_test == tb_sender.get():
+                            print("Sender matched")
+                            func(msg,email_textbox,sender,subject)
+                            cnt += 1
 
-                elif value == 2:
-                    if tb_keyword.get().lower() in subject.lower():
-                        print("Keyword FOUND")
-                        func(msg,email_textbox,sender,subject)
-                
-                elif value == 3:
-                    if tb_keyword.get().lower() in subject.lower() and sender_test == tb_sender.get():
-                        print("Sender and Keyword FOUND")
-                        func(msg,email_textbox,sender,subject)
+                    elif value == 2:
+                        if tb_keyword.get().lower() in subject.lower():
+                            print("Keyword FOUND")
+                            func(msg,email_textbox,sender,subject)
+                            cnt += 1
+
+                    elif value == 3:
+                        if tb_keyword.get().lower() in subject.lower() and sender_test == tb_sender.get():
+                            print("Sender and Keyword FOUND")
+                            func(msg,email_textbox,sender,subject)
+                            cnt += 1
+            if cnt == email_count:
+                print("Count reached")
+                break
+    except Exception as e:
+        messagebox.showinfo("Error",e)
+
+        
 
 
                 # index = body.find("OTP")

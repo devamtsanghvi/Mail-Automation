@@ -1,4 +1,3 @@
-import html
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk
@@ -20,6 +19,7 @@ import sys
 import subprocess
 import io
 import shutil
+import re
 
 global mail, password, lb_email, var
 
@@ -137,7 +137,7 @@ def check_update():
             # exit app
             sys.exit(0)
 
-# check_update()
+check_update()
 
 
 
@@ -152,180 +152,215 @@ def connection():
     return conn
 
 
+
+def func(msg,email_textbox,sender,subject):
+    body = ""
+    if msg.is_multipart():
+        for part in msg.walk():
+            ctype = part.get_content_type()
+            cdispo = str(part.get('Content-Disposition'))
+
+            if ctype == 'text/plain' and 'attachment' not in cdispo:
+                body = part.get_payload(decode=True)
+                charset = part.get_content_charset()
+                if charset:
+                    body = body.decode(charset)
+                break
+            elif ctype == 'text/html' and 'attachment' not in cdispo:
+                body = part.get_payload(decode=True)
+                charset = part.get_content_charset()
+                if charset:
+                    body = body.decode(charset)
+                soup = BeautifulSoup(body, 'html.parser')
+                body = soup.get_text(separator='\n')  # remove HTML tags
+                break
+    else:
+        body = msg.get_payload(decode=True)
+        charset = msg.get_content_charset()
+        if charset:
+            body = body.decode(charset)
+        soup = BeautifulSoup(body, 'html.parser')
+        body = soup.get_text(separator='\n')  # remove HTML tags
+
+    email_textbox.insert(tk.END, f"\n{'#'*75}\nFrom: {sender}\nSubject: {subject}\n{'-'*50}\nBody: {body}\n")
 # password = 'qvxzwnwygvubgdeh'
 # password = 'eoppjzhrwrppnqza'
 # password = 'ztvlpxhwogmcgpug'
 # password = 'jgvhc6bit40kgoowcs4'
 
+
+# password = ""
+
+def login(value,password):
+    email_address = tb_email.get().lower()
+    email_address = email_address.replace("\n","")
+    email_count = int(tb_count.get())
+
+    # email_window = tk.Toplevel(root)
+    # email_window.title("Emails")
+    # email_window.geometry("700x500")
+
+    # scrollbar = tk.Scrollbar(email_window)
+    # scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    # email_textbox = tk.Text(email_window, yscrollcommand=scrollbar.set)
+    # email_textbox.pack(expand=True, fill=tk.BOTH)
+    # scrollbar.config(command=email_textbox.yview)
+
+    frame = tk.Frame(root)
+    frame.place(x=0, y=130,width=650, height=270)
+
+    scrollbar = tk.Scrollbar(frame)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    email_textbox = tk.Text(frame, yscrollcommand=scrollbar.set)
+    email_textbox.pack(expand=True, fill=tk.BOTH)
+    scrollbar.config(command=email_textbox.yview)
+
+    tempStr = email_address.lower().split('@')[1]
+    print(tempStr)
+    if tempStr == "gmail.com":
+        host = 'imap.gmail.com'
+        mail = imaplib.IMAP4_SSL(host)
+        try:
+            mail.login(email_address, password)
+        except imaplib.IMAP4.error as e:
+            messagebox.showinfo("",e)
+        if var.get() == 1:
+            res, messages = mail.select('Inbox')
+        
+        elif var.get() == 2:
+            res, messages = mail.select('[Gmail]/Spam')
+
+    elif tempStr == "yahoo.com" or tempStr=="yahoo.co.in" or tempStr=="yahoo.in":
+        host = 'imap.mail.yahoo.com'
+        mail = imaplib.IMAP4_SSL(host)
+        try:
+            mail.login(email_address, password)
+        except imaplib.IMAP4.error as e:
+            messagebox.showinfo("",e)
+        if var.get() == 1:
+            res, messages = mail.select('Inbox')
+        
+        elif var.get() == 2:
+            res, messages = mail.select('Bulk')
+
+
+    elif tempStr == "outlook.com":
+        host = 'outlook.office365.com'
+        mail = imaplib.IMAP4_SSL(host)
+        try:
+            mail.login(email_address, password)
+        except imaplib.IMAP4.error as e:
+            messagebox.showinfo("",e)
+        if var.get() == 1:
+            res, messages = mail.select('Inbox')
+        elif var.get() == 2:
+            res, messages = mail.select('Junk')
+
+
+    elif tempStr == "rediffmail.com":
+        host = 'mail.rediffmailpro.com'
+        mail = imaplib.IMAP4_SSL(host)
+        try:
+            mail.login(email_address, password)
+        except imaplib.IMAP4.error as e:
+            messagebox.showinfo("",e)
+
+        if var.get() == 1:
+            res, messages = mail.select('Inbox')
+        elif var.get() == 2:
+            res, messages = mail.select('Spam')
+
+    else:
+        messagebox.showerror("Error", "Unsupported email domain")
+        return
+
+    # mail = imaplib.IMAP4_SSL(host)
+    # time.sleep(2)
+    # mail.login(email_address, password)
+
+    total_messages = int(messages[0])
+    
+
+    for i in range(total_messages, total_messages - email_count, -1):
+        # RFC822 protocol
+        res, msg = mail.fetch(str(i), "(RFC822)")
+        for response in msg:
+            if isinstance(response, tuple):
+                msg = email.message_from_bytes(response[1])
+
+                sender = msg["From"]
+                subject = msg["Subject"]
+                sender_test = re.findall(r'[\w\.-]+@[\w\.-]+', sender)[0]
+
+                if value == 0:
+                    print("All")
+                    func(msg,email_textbox,sender,subject)
+                elif value == 1:
+                    if sender_test == tb_sender.get():
+                        print("Sender matched")
+                        func(msg,email_textbox,sender,subject)
+
+                elif value == 2:
+                    if tb_keyword.get().lower() in subject.lower():
+                        print("Keyword FOUND")
+                        func(msg,email_textbox,sender,subject)
+                
+                elif value == 3:
+                    if tb_keyword.get().lower() in subject.lower() and sender_test == tb_sender.get():
+                        print("Sender and Keyword FOUND")
+                        func(msg,email_textbox,sender,subject)
+
+
+                # index = body.find("OTP")
+                # print(body[index+1])
+
+
+                # if sender == 'KVB-no.reply@kvbmail.com' and subject == 'On-Demand Tokencode':
+                #     match = re.search(r'\b\d{8}\b', body)
+                #     if match:
+                #         otp = match.group(0)
+                #         print("OTP found:", otp)
+                #     else:
+                #         print("OTP not found")
+                
+
+    # mail.close()
+    mail.logout()
+
 def submit():
-    conn = connection()
-    cur = conn.cursor()
-    temp = tb_email.get().replace("\n","")
-    query = f"SELECT memail, apppassword FROM backoffice.clientemail where memail='{str(temp)}';"
-    print(query)
-    a = cur.execute(query)
-    b = cur.fetchall()
-    print(b)
+    # conn = connection()
+    # cur = conn.cursor()
+    # temp = tb_email.get().replace("\n","")
+    # query = f"SELECT memail, apppassword FROM backoffice.clientemail where memail='{str(temp)}';"
+    # print(query)
+    # a = cur.execute(query)
+    # b = cur.fetchall()
+    # print(b)
 
-    df = pd.read_sql(query, con=conn)
+    # df = pd.read_sql(query, con=conn)
 
-    lb_email = df.iloc[0, 0]
-    password = df.iloc[0, 1]
+    # lb_email = df.iloc[0, 0]
+    # password = df.iloc[0, 1]
+    password = "djnezzcttklggxuz"
     print(password)
     # getBrow = conbrowser(Customerid, Password, bankid)
 
     if tb_email.get() == '' :
             messagebox.showinfo("Empty Input Field", "Please enter Email ID!")
             
-    else:
-        email_address = tb_email.get().lower()
-        email_address = email_address.replace("\n","")
-        email_count = int(tb_count.get())
+    elif tb_keyword.get() == '' and tb_sender.get() == '':
+        login(0,password)
 
-        # email_window = tk.Toplevel(root)
-        # email_window.title("Emails")
-        # email_window.geometry("700x500")
-
-        # scrollbar = tk.Scrollbar(email_window)
-        # scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # email_textbox = tk.Text(email_window, yscrollcommand=scrollbar.set)
-        # email_textbox.pack(expand=True, fill=tk.BOTH)
-        # scrollbar.config(command=email_textbox.yview)
-
-        frame = tk.Frame(root)
-        frame.place(x=0, y=130,width=650, height=270)
-
-        scrollbar = tk.Scrollbar(frame)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        email_textbox = tk.Text(frame, yscrollcommand=scrollbar.set)
-        email_textbox.pack(expand=True, fill=tk.BOTH)
-        scrollbar.config(command=email_textbox.yview)
-
-        tempStr = email_address.lower().split('@')[1]
-        print(tempStr)
-        if tempStr == "gmail.com":
-            host = 'imap.gmail.com'
-            mail = imaplib.IMAP4_SSL(host)
-            try:
-                mail.login(email_address, password)
-            except imaplib.IMAP4.error as e:
-                messagebox.showinfo("",e)
-            if var.get() == 1:
-                res, messages = mail.select('Inbox')
-            
-            elif var.get() == 2:
-                res, messages = mail.select('[Gmail]/Spam')
-
-        elif tempStr == "yahoo.com" or tempStr=="yahoo.co.in" or tempStr=="yahoo.in":
-            host = 'imap.mail.yahoo.com'
-            mail = imaplib.IMAP4_SSL(host)
-            try:
-                mail.login(email_address, password)
-            except imaplib.IMAP4.error as e:
-                messagebox.showinfo("",e)
-            if var.get() == 1:
-                res, messages = mail.select('Inbox')
-            
-            elif var.get() == 2:
-                res, messages = mail.select('Bulk')
-
-
-        elif tempStr == "outlook.com":
-            host = 'outlook.office365.com'
-            mail = imaplib.IMAP4_SSL(host)
-            try:
-                mail.login(email_address, password)
-            except imaplib.IMAP4.error as e:
-                messagebox.showinfo("",e)
-            if var.get() == 1:
-                res, messages = mail.select('Inbox')
-            elif var.get() == 2:
-                res, messages = mail.select('Junk')
-
-
-        elif tempStr == "rediffmail.com":
-            host = 'mail.rediffmailpro.com'
-            mail = imaplib.IMAP4_SSL(host)
-            try:
-                mail.login(email_address, password)
-            except imaplib.IMAP4.error as e:
-                messagebox.showinfo("",e)
-
-            if var.get() == 1:
-                res, messages = mail.select('Inbox')
-            elif var.get() == 2:
-                res, messages = mail.select('Spam')
-
-        else:
-            messagebox.showerror("Error", "Unsupported email domain")
-            return
-
-        # mail = imaplib.IMAP4_SSL(host)
-        # time.sleep(2)
-        # mail.login(email_address, password)
-
-        total_messages = int(messages[0])
-        
-
-        for i in range(total_messages, total_messages - email_count, -1):
-            # RFC822 protocol
-            res, msg = mail.fetch(str(i), "(RFC822)")
-            for response in msg:
-                if isinstance(response, tuple):
-                    msg = email.message_from_bytes(response[1])
-
-                    sender = msg["From"]
-                    subject = msg["Subject"]
-
-                    body = ""
-                    if msg.is_multipart():
-                        for part in msg.walk():
-                            ctype = part.get_content_type()
-                            cdispo = str(part.get('Content-Disposition'))
-
-                            if ctype == 'text/plain' and 'attachment' not in cdispo:
-                                body = part.get_payload(decode=True)
-                                charset = part.get_content_charset()
-                                if charset:
-                                    body = body.decode(charset)
-                                break
-                            elif ctype == 'text/html' and 'attachment' not in cdispo:
-                                body = part.get_payload(decode=True)
-                                charset = part.get_content_charset()
-                                if charset:
-                                    body = body.decode(charset)
-                                soup = BeautifulSoup(body, 'html.parser')
-                                body = soup.get_text(separator='\n')  # remove HTML tags
-                                break
-                    else:
-                        body = msg.get_payload(decode=True)
-                        charset = msg.get_content_charset()
-                        if charset:
-                            body = body.decode(charset)
-                        soup = BeautifulSoup(body, 'html.parser')
-                        body = soup.get_text(separator='\n')  # remove HTML tags
-
-                    email_textbox.insert(tk.END, f"\n{'#'*75}\nFrom: {sender}\nSubject: {subject}\n{'-'*50}\nBody: {body}\n")
-
-
-                    # index = body.find("OTP")
-                    # print(body[index+1])
-
-
-                    # if sender == 'KVB-no.reply@kvbmail.com' and subject == 'On-Demand Tokencode':
-                    #     match = re.search(r'\b\d{8}\b', body)
-                    #     if match:
-                    #         otp = match.group(0)
-                    #         print("OTP found:", otp)
-                    #     else:
-                    #         print("OTP not found")
-                    
-
-        # mail.close()
-        mail.logout()
-
+    elif tb_keyword.get() == '' and tb_sender.get() != '':
+        login(1,password)
+    
+    elif tb_keyword.get() != '' and tb_sender.get() == '':
+        login(2,password)
+    
+    elif tb_keyword.get() != '' and tb_sender.get() != '':
+        login(3,password)
 
 root = tk.Tk()
 
@@ -340,74 +375,67 @@ alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenhei
 root.geometry(alignstr)
 root.resizable(width=False, height=False)
 
+# Define fonts
+ft_label = tkFont.Font(family='Times',size=10, weight='bold')
+ft_entry = tkFont.Font(family='Times',size=9)
+ft_radio = tkFont.Font(family='Times',size=11, weight='bold')
+ft_button = tkFont.Font(family='Times',size=14, weight='bold')
 
-lb_email = tk.Label(root, text="Email ID")
-ft = tkFont.Font(family='Times',size=12, weight='bold')
-lb_email["bg"] = "#5E2572"
-lb_email["font"] = ft
-lb_email["fg"] = "#fff"
-lb_email["justify"] = "center"
-lb_email.place(x=120,y=20,width=70,height=30)
+# Define labels
+lb_email = tk.Label(root, text="Email ID", font=ft_label, bg="#5E2572", fg="#fff", justify="center")
+lb_count = tk.Label(root, text="Number of Emails", font=ft_label, bg="#5E2572", fg="#fff", justify="center")
+lb_sender = tk.Label(root, text="Sender", font=ft_label, bg="#5E2572", fg="#fff", justify="center")
+lb_keyword = tk.Label(root, text="Keyword", font=ft_label, bg="#5E2572", fg="#fff", justify="center")
 
-lb_count = tk.Label(root, text="Number of Emails")
-ft = tkFont.Font(family='Times',size=12, weight='bold')
-lb_count["bg"] = "#5E2572"
-lb_count["font"] = ft
-lb_count["fg"] = "#fff"
-lb_count["justify"] = "center"
-lb_count.place(x=60,y=80,width=139,height=30)
+# Define entries
+tb_email = tk.Entry(root, borderwidth="1px", font=ft_entry, fg="#333333", justify="center")
+tb_email.focus_set()
+tb_count = tk.Entry(root, borderwidth="1px", font=ft_entry, fg="#333333", justify="center")
+tb_count.insert(END, '3')
+tb_sender = tk.Entry(root, borderwidth="1px", font=ft_entry, fg="#333333", justify="center")
+tb_keyword = tk.Entry(root, borderwidth="1px", font=ft_entry, fg="#333333", justify="center")
 
+# Define radio buttons
 var = tk.IntVar()
 var.set(1)
-inbox_mail = tk.Radiobutton(root, text="INBOX", variable=var, value=1)
-ft = tkFont.Font(family='Times',size=13, weight='bold')
-inbox_mail["font"] = ft
-inbox_mail["selectcolor"] = "#5E2572"
-inbox_mail["activebackground"] = "#5E2572"
-inbox_mail["activeforeground"] = "#FC7242"
-inbox_mail["bg"] = "#5E2572"
-inbox_mail["fg"] = "#fff"
-inbox_mail["justify"] = "center"
-inbox_mail.place(x=520,y=20,width=95,height=25)
+inbox_mail = tk.Radiobutton(root, text="INBOX", variable=var, value=1,
+                            font=ft_radio,
+                            selectcolor="#5E2572",
+                            activebackground="#5E2572",
+                            activeforeground="#FC7242",
+                            bg="#5E2572",
+                            fg="#fff",
+                            justify="center")
+spam_mail = tk.Radiobutton(root, text="SPAM", variable=var, value=2,
+                           font=ft_radio,
+                           selectcolor="#5E2572",
+                           activebackground="#5E2572",
+                           activeforeground="#FC7242",
+                           bg="#5E2572",
+                           fg="#fff",
+                           justify="center")
 
-spam_mail = tk.Radiobutton(root, text="SPAM", variable=var, value=2)
-ft = tkFont.Font(family='Times',size=13, weight='bold')
-spam_mail["bg"] = "#5E2572"
-spam_mail["activebackground"] = "#5E2572"
-spam_mail["activeforeground"] = "#FC7242"
-spam_mail["selectcolor"] = "#5E2572"
-spam_mail["font"] = ft
-spam_mail["fg"] = "#fff"
-spam_mail["justify"] = "center"
-spam_mail.place(x=520,y=50,width=85,height=25)
+# Define button
+btn_submit = tk.Button(root, text="Submit", command=submit,
+                       bg="#FC7242",
+                       activebackground="#5E2572",
+                       activeforeground="#FC7242",
+                       font=ft_button,
+                       fg="#fff",
+                       justify="center")
 
-tb_email = tk.Entry(root)
-tb_email["borderwidth"] = "1px"
-ft = tkFont.Font(family='Times',size=11)
-tb_email["font"] = ft
-tb_email["fg"] = "#333333"
-tb_email["justify"] = "center"
-tb_email.place(x=200,y=20,width=275,height=30)
-tb_email.focus_set()
-
-tb_count = tk.Entry(root)
-tb_count["borderwidth"] = "1px"
-tb_count.insert(END, '3')
-ft = tkFont.Font(family='Times',size=12)
-tb_count["font"] = ft
-tb_count["fg"] = "#333333"
-tb_count["justify"] = "center"
-tb_count.place(x=200,y=80,width=61,height=30)
-
-btn_submit = tk.Button(root, text="Submit", command=submit)
-btn_submit["bg"] = "#FC7242"
-btn_submit["activebackground"] = "#5E2572"
-btn_submit["activeforeground"] = "#FC7242"
-ft = tkFont.Font(family='Times',size=18, weight='bold')
-btn_submit["font"] = ft
-btn_submit["fg"] = "#fff"
-btn_submit["justify"] = "center"
-btn_submit.place(x=365,y=80,width=110,height=35)
+# Place elements on the grid
+lb_email.grid(row=0,column=0,padx=(50,10),pady=(20,10))
+lb_count.grid(row=1,column=0,padx=(50,10),pady=(10))
+lb_sender.grid(row=2,column=0,padx=(50,10),pady=(10))
+lb_keyword.grid(row=3,column=0,padx=(50,10),pady=(10))
+tb_email.grid(row=0,column=1,padx=(10),pady=(20,10),sticky='ew')
+tb_count.grid(row=1,column=1,padx=(10),pady=(10),sticky='ew')
+tb_sender.grid(row=2,column=1,padx=(10),pady=(10),sticky='ew')
+tb_keyword.grid(row=3,column=1,padx=(10),pady=(10),sticky='ew')
+inbox_mail.grid(row=0,column=2,padx=(50),pady=(20))
+spam_mail.grid(row=1,column=2,padx=(50))
+btn_submit.grid(row=3,column=2,padx=(50),pady=(10))
 
 root.bind("<Return>", lambda event=None: btn_submit.invoke())
 # root.attributes("-topmost",True)
